@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>شركة العالمية</title>
+<meta name="description" content="العالمية — لوحة متابعة الأداء">
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="شركة العالمية">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{ --navy:#0b2545; --navy2:#1b4079; --gold:#c9a227; --gold2:#e8c75a; --muted:#6b7a90; --line:#e6ebf2; }
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#fff;overflow:hidden;font-family:'Cairo',system-ui,sans-serif;color:var(--navy)}
+#app{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0);bottom:0;width:100%;height:calc(100% - env(safe-area-inset-top,0px));border:0;background:#fff}
+
+/* ===== Splash ===== */
+#splash{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#fff;
+  background-image:radial-gradient(500px 400px at 100% 0%,rgba(201,162,39,.16),transparent 60%),radial-gradient(500px 400px at 0% 100%,rgba(37,99,235,.08),transparent 60%);
+  transition:opacity .6s ease,visibility .6s}
+#splash.out{opacity:0;visibility:hidden}
+#splash img{width:112px;height:112px;border-radius:30px;box-shadow:0 16px 40px rgba(201,162,39,.38)}
+#splash .name{font-size:40px;font-weight:900;line-height:1.1;
+  background:linear-gradient(100deg,var(--navy) 0%,var(--navy2) 35%,var(--gold) 50%,var(--navy2) 65%,var(--navy) 100%);background-size:250% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+#splash .tag{color:var(--muted);font-weight:700;font-size:15px;margin-top:-8px}
+.dots{display:flex;gap:7px;margin-top:10px}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--gold)}
+
+/* ===== Message (offline / setup) ===== */
+#msg{position:fixed;inset:0;z-index:11;display:none;align-items:center;justify-content:center;padding:20px;background:#fff}
+#msg.show{display:flex}
+#msg .box{max-width:420px;text-align:center;border:1px solid var(--line);border-radius:24px;padding:28px 22px;box-shadow:0 20px 50px rgba(11,37,69,.10)}
+#msg .ic{font-size:44px}
+#msg h2{margin:6px 0;font-size:22px}
+#msg p{color:var(--muted);font-weight:700;line-height:1.9;margin:0 0 16px}
+#msg button{border:0;border-radius:12px;padding:12px 30px;font:inherit;font-weight:900;font-size:16px;color:#fff;background:linear-gradient(100deg,var(--navy),var(--navy2));cursor:pointer}
+
+@media (prefers-reduced-motion: no-preference){
+  #splash img{animation:logoIn .9s cubic-bezier(.3,1.5,.5,1) both}
+  #splash .name{animation:nameIn .9s cubic-bezier(.2,.8,.2,1) both .15s, shimmer 4s ease-in-out infinite 1s}
+  #splash .tag{animation:fade .8s ease both .4s}
+  .dots i{animation:bounce 1s ease-in-out infinite}
+  .dots i:nth-child(2){animation-delay:.15s} .dots i:nth-child(3){animation-delay:.3s}
+}
+@keyframes logoIn{from{opacity:0;transform:scale(.4) rotate(-20deg)}to{opacity:1;transform:none}}
+@keyframes nameIn{from{opacity:0;transform:translateY(12px);letter-spacing:6px}to{opacity:1;transform:none;letter-spacing:0}}
+@keyframes shimmer{0%,100%{background-position:100% 0}50%{background-position:0% 0}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes bounce{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-8px);opacity:1}}
+</style>
+</head>
+<body>
+<iframe id="app" title="العالمية — لوحة الأداء" allow="clipboard-write"></iframe>
+
+<div id="splash">
+  <img src="icon-512.png" alt="">
+  <div class="name">شركة العالمية</div>
+  <div class="tag">لوحة متابعة الأداء</div>
+  <div class="dots"><i></i><i></i><i></i></div>
+</div>
+
+<div id="msg"><div class="box"><div class="ic" id="mIc"></div><h2 id="mT"></h2><p id="mP"></p><button id="mB" type="button">حاول تاني</button></div></div>
+
+<script>
+/* ======================================================================
+   الصق هنا لينك الداشبورد (لينك الـ Web app اللي بيخلص بـ /exec)
+   ====================================================================== */
+const APP_URL = 'https://script.google.com/a/macros/fast-eloula.com/s/AKfycbz5lc2buqzvLkZ_ZMVccS-raYknMxgcriNjtkqHKQmzbSQ8OvQRVoeEY8fED9oX60C-MA/exec';
+
+const $ = id => document.getElementById(id);
+const MIN_SPLASH = 1400;          // الشاشة الافتتاحية بتفضل ثانية ونص على الأقل
+const t0 = Date.now();
+
+function hideSplash(){ setTimeout(() => $('splash').classList.add('out'), Math.max(0, MIN_SPLASH - (Date.now() - t0))); }
+function message(icon, title, text, btn){
+  $('mIc').textContent = icon; $('mT').textContent = title; $('mP').textContent = text;
+  $('mB').hidden = !btn; $('msg').classList.add('show'); $('splash').classList.add('out');
+}
+function load(){
+  $('msg').classList.remove('show');
+  if (!/^https:\/\/script\.google(usercontent)?\.com\//.test(APP_URL)) {
+    message('⚙️', 'الأبلكيشن محتاج لينك الداشبورد', 'افتح ملف index.html والصق لينك الـ Web app (اللي بيخلص بـ /exec) مكان PASTE_YOUR_EXEC_LINK_HERE.', false);
+    return;
+  }
+  if (!navigator.onLine) { message('📡', 'مفيش إنترنت', 'اتأكد إن النت شغال وبعدين دوس حاول تاني.', true); return; }
+  $('app').src = APP_URL;
+}
+$('app').addEventListener('load', () => { if ($('app').src) hideSplash(); });
+$('mB').addEventListener('click', () => location.reload());
+window.addEventListener('offline', () => message('📡', 'النت فصل', 'أول ما النت يرجع الأبلكيشن هيكمّل لوحده.', true));
+window.addEventListener('online', () => { if ($('msg').classList.contains('show')) location.reload(); });
+
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+load();
+</script>
+</body>
+</html>
